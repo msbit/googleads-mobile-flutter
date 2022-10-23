@@ -448,6 +448,23 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
         nativeAd.load();
         result.success(null);
         break;
+      case "loadAdLoaderAd":
+        final FlutterAdLoaderAd adLoaderAd =
+            new FlutterAdLoaderAd.Builder()
+                .setManager(instanceManager)
+                .setAdUnitId(call.<String>argument("adUnitId"))
+                .setRequest(call.<FlutterAdRequest>argument("request"))
+                .setAdManagerRequest(call.<FlutterAdManagerAdRequest>argument("adManagerRequest"))
+                .setId(call.<Integer>argument("adId"))
+                .setFlutterAdLoader(
+                    adLoaderSupplier != null
+                        ? adLoaderSupplier.get()
+                        : new FlutterAdLoader(context))
+                .build();
+        instanceManager.trackAd(adLoaderAd, call.<Integer>argument("adId"));
+        adLoaderAd.load();
+        result.success(null);
+        break;
       case "loadInterstitialAd":
         final FlutterInterstitialAd interstitial =
             new FlutterInterstitialAd(
@@ -642,6 +659,22 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
         flutterMobileAds.openDebugMenu(context, adUnitId);
         result.success(null);
         break;
+      case "getAdLoaderAdType":
+        {
+          FlutterAd ad = instanceManager.adForId(call.<Integer>argument("adId"));
+          if (ad == null) {
+            // This was called on a dart ad container that hasn't been loaded yet.
+            result.success(null);
+          } else if (ad instanceof FlutterAdLoaderAd) {
+            result.success(((FlutterAdLoaderAd) ad).getAdLoaderAdType().ordinal());
+          } else {
+            result.error(
+                Constants.ERROR_CODE_UNEXPECTED_AD_TYPE,
+                "Unexpected ad type for getAdLoaderAdType: " + ad,
+                null);
+          }
+          break;
+        }
       case "getAdSize":
         {
           FlutterAd ad = instanceManager.adForId(call.<Integer>argument("adId"));
@@ -652,6 +685,8 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
             result.success(((FlutterBannerAd) ad).getAdSize());
           } else if (ad instanceof FlutterAdManagerBannerAd) {
             result.success(((FlutterAdManagerBannerAd) ad).getAdSize());
+          } else if (ad instanceof FlutterAdLoaderAd) {
+            result.success(((FlutterAdLoaderAd) ad).getAdSize());
           } else {
             result.error(
                 Constants.ERROR_CODE_UNEXPECTED_AD_TYPE,
@@ -673,6 +708,22 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
             result.error(
                 Constants.ERROR_CODE_UNEXPECTED_AD_TYPE,
                 "Unexpected ad type for isCollapsible: " + ad,
+                null);
+          }
+          break;
+        }
+      case "getFormatId":
+        {
+          FlutterAd ad = instanceManager.adForId(call.<Integer>argument("adId"));
+          if (ad == null) {
+            // This was called on a dart ad container that hasn't been loaded yet.
+            result.success(null);
+          } else if (ad instanceof FlutterAdLoaderAd) {
+            result.success(((FlutterAdLoaderAd) ad).getFormatId());
+          } else {
+            result.error(
+                Constants.ERROR_CODE_UNEXPECTED_AD_TYPE,
+                "Unexpected ad type for getFormatId: " + ad,
                 null);
           }
           break;
