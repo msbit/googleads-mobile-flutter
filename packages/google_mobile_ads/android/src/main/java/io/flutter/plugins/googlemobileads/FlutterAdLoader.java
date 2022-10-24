@@ -146,12 +146,18 @@ public class FlutterAdLoader {
       @NonNull String adUnitId,
       @NonNull AdListener adListener,
       @NonNull AdRequest request,
-      @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters) {
+      @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters,
+      @Nullable FlutterAdLoaderAd.CustomParameters customParameters) {
     AdLoader.Builder builder = new AdLoader.Builder(context, adUnitId);
     if (bannerParameters != null) {
       builder = builder.forAdManagerAdView(bannerParameters.listener, bannerParameters.adSizes);
       if (bannerParameters.adManagerAdViewOptions != null) {
         builder.withAdManagerAdViewOptions(bannerParameters.adManagerAdViewOptions);
+      }
+    }
+    if (customParameters != null) {
+      for (String formatId : customParameters.factories.keySet()) {
+        builder = builder.forCustomFormatAd(formatId, customParameters.listener, null);
       }
     }
     builder.withAdListener(adListener).build().loadAd(request);
@@ -162,12 +168,18 @@ public class FlutterAdLoader {
       @NonNull String adUnitId,
       @NonNull AdListener adListener,
       @NonNull AdManagerAdRequest adManagerAdRequest,
-      @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters) {
+      @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters,
+      @Nullable FlutterAdLoaderAd.CustomParameters customParameters) {
     AdLoader.Builder builder = new AdLoader.Builder(context, adUnitId);
     if (bannerParameters != null) {
       builder = builder.forAdManagerAdView(bannerParameters.listener, bannerParameters.adSizes);
       if (bannerParameters.adManagerAdViewOptions != null) {
         builder.withAdManagerAdViewOptions(bannerParameters.adManagerAdViewOptions);
+      }
+    }
+    if (customParameters != null) {
+      for (String formatId : customParameters.factories.keySet()) {
+        builder = builder.forCustomFormatAd(formatId, customParameters.listener, null);
       }
     }
     builder.withAdListener(adListener).build().loadAd(adManagerAdRequest);

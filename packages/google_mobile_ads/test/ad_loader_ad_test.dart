@@ -67,6 +67,7 @@ void main() {
           'request': request,
           'adManagerRequest': null,
           'banner': null,
+          'custom': null,
         })
       ]);
 
@@ -90,6 +91,7 @@ void main() {
           'request': null,
           'adManagerRequest': request,
           'banner': null,
+          'custom': null,
         })
       ]);
 
@@ -115,6 +117,33 @@ void main() {
           'request': adLoaderAd.request,
           'adManagerRequest': null,
           'banner': banner,
+          'custom': null,
+        })
+      ]);
+
+      expect(instanceManager.adFor(0), isNotNull);
+    });
+
+    test('load with $CustomParameters', () async {
+      final CustomParameters custom = CustomParameters(
+        formatIds: ['test-format-id'],
+      );
+      final AdLoaderAd adLoaderAd = AdLoaderAd(
+        adUnitId: 'test-ad-unit',
+        listener: AdLoaderAdListener(),
+        request: AdRequest(),
+        custom: custom,
+      );
+
+      await adLoaderAd.load();
+      expect(log, <Matcher>[
+        isMethodCall('loadAdLoaderAd', arguments: <String, dynamic>{
+          'adId': 0,
+          'adUnitId': 'test-ad-unit',
+          'request': adLoaderAd.request,
+          'adManagerRequest': null,
+          'banner': null,
+          'custom': custom,
         })
       ]);
 

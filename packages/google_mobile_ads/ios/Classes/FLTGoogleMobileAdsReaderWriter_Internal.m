@@ -48,6 +48,7 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
   FLTAdmobFieldNativeTemplateColor = 153,
   FLTAdmobFieldAdManagerAdViewOptions = 154,
   FLTAdmobBannerParameters = 155,
+  FLTAdmobCustomParameters = 156,
 };
 
 @interface FLTGoogleMobileAdsWriter : FlutterStandardWriter
@@ -340,6 +341,11 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
         initWithSizes:[self readValueOfType:[self readByte]]
               options:[self readValueOfType:[self readByte]]];
   }
+  case FLTAdmobCustomParameters: {
+    return [[FLTCustomParameters alloc]
+        initWithFormatIds:[self readValueOfType:[self readByte]]
+              viewOptions:[self readValueOfType:[self readByte]]];
+  }
   }
   return [super readValueOfType:type];
 }
@@ -528,6 +534,11 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
     FLTBannerParameters *bannerParameters = value;
     [self writeValue:bannerParameters.sizes];
     [self writeValue:bannerParameters.options];
+  } else if ([value isKindOfClass:[FLTCustomParameters class]]) {
+    [self writeByte:FLTAdmobCustomParameters];
+    FLTCustomParameters *customParameters = value;
+    [self writeValue:customParameters.formatIds];
+    [self writeValue:customParameters.viewOptions];
   } else {
     [super writeValue:value];
   }
