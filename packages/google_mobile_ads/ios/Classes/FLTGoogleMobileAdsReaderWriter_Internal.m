@@ -46,7 +46,8 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
   FLTAdmobFieldNativeTemplateFontStyle = 151,
   FLTAdmobFieldNativeTemplateType = 152,
   FLTAdmobFieldNativeTemplateColor = 153,
-
+  FLTAdmobFieldAdManagerAdViewOptions = 154,
+  FLTAdmobBannerParameters = 155,
 };
 
 @interface FLTGoogleMobileAdsWriter : FlutterStandardWriter
@@ -329,6 +330,16 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
                                                    green:green
                                                     blue:blue];
   }
+  case FLTAdmobFieldAdManagerAdViewOptions: {
+    return [[FLTAdManagerAdViewOptions alloc]
+        initWithManualImpressionsEnabled:[self
+                                             readValueOfType:[self readByte]]];
+  }
+  case FLTAdmobBannerParameters: {
+    return [[FLTBannerParameters alloc]
+        initWithSizes:[self readValueOfType:[self readByte]]
+              options:[self readValueOfType:[self readByte]]];
+  }
   }
   return [super readValueOfType:type];
 }
@@ -508,6 +519,15 @@ typedef NS_ENUM(NSInteger, FLTAdMobField) {
     [self writeValue:templateStyle.secondaryTextStyle];
     [self writeValue:templateStyle.tertiaryTextStyle];
     [self writeValue:templateStyle.cornerRadius];
+  } else if ([value isKindOfClass:[FLTAdManagerAdViewOptions class]]) {
+    [self writeByte:FLTAdmobFieldAdManagerAdViewOptions];
+    FLTAdManagerAdViewOptions *options = value;
+    [self writeValue:options.manualImpressionsEnabled];
+  } else if ([value isKindOfClass:[FLTBannerParameters class]]) {
+    [self writeByte:FLTAdmobBannerParameters];
+    FLTBannerParameters *bannerParameters = value;
+    [self writeValue:bannerParameters.sizes];
+    [self writeValue:bannerParameters.options];
   } else {
     [super writeValue:value];
   }
