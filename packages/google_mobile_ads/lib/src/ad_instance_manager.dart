@@ -496,23 +496,21 @@ class AdInstanceManager {
   Future<String?> getFormatId(Ad ad) =>
       instanceManager.channel.invokeMethod<String>(
         'getFormatId',
-        <dynamic, dynamic>{
-          'adId': adIdFor(ad),
-        },
+        <dynamic, dynamic>{'adId': adIdFor(ad)},
       );
 
   Future<AdLoaderAdType> getAdLoaderAdType(Ad ad) async {
     int adLoaderAdType = (await instanceManager.channel.invokeMethod<int>(
       'getAdLoaderAdType',
-      <dynamic, dynamic>{
-        'adId': adIdFor(ad),
-      },
+      <dynamic, dynamic>{'adId': adIdFor(ad)},
     ))!;
 
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       switch (adLoaderAdType) {
         case 0:
           return AdLoaderAdType.unknown;
+        case 1:
+          return AdLoaderAdType.banner;
         default:
           debugPrint('Error: unknown AdLoaderAdType value: $adLoaderAdType');
           return AdLoaderAdType.unknown;
@@ -521,6 +519,8 @@ class AdInstanceManager {
       switch (adLoaderAdType) {
         case 0:
           return AdLoaderAdType.unknown;
+        case 1:
+          return AdLoaderAdType.banner;
         default:
           debugPrint('Error: unknown AdLoaderAdType value: $adLoaderAdType');
           return AdLoaderAdType.unknown;
@@ -616,15 +616,13 @@ class AdInstanceManager {
 
     final int adId = _nextAdId++;
     _loadedAds[adId] = ad;
-    return channel.invokeMethod<void>(
-      'loadAdLoaderAd',
-      <dynamic, dynamic>{
-        'adId': adId,
-        'adUnitId': ad.adUnitId,
-        'request': ad.request,
-        'adManagerRequest': ad.adManagerRequest,
-      },
-    );
+    return channel.invokeMethod<void>('loadAdLoaderAd', <dynamic, dynamic>{
+      'adId': adId,
+      'adUnitId': ad.adUnitId,
+      'request': ad.request,
+      'adManagerRequest': ad.adManagerRequest,
+      'banner': ad.banner,
+    });
   }
 
   /// Starts loading the ad if not previously loaded.
@@ -935,6 +933,8 @@ class AdMessageCodec extends StandardMessageCodec {
   static const int _valueNativeTemplateType = 152;
   static const int _valueColor = 153;
   static const int _valueMediationExtras = 154;
+  static const int _valueAdManagerAdViewOptions = 155;
+  static const int _valueBannerParameters = 156;
 
   @override
   void writeValue(WriteBuffer buffer, dynamic value) {
@@ -1071,6 +1071,13 @@ class AdMessageCodec extends StandardMessageCodec {
     } else if (value is NativeTemplateFontStyle) {
       buffer.putUint8(_valueNativeTemplateFontStyle);
       writeValue(buffer, value.index);
+    } else if (value is AdManagerAdViewOptions) {
+      buffer.putUint8(_valueAdManagerAdViewOptions);
+      writeValue(buffer, value.manualImpressionsEnabled);
+    } else if (value is BannerParameters) {
+      buffer.putUint8(_valueBannerParameters);
+      writeValue(buffer, value.sizes);
+      writeValue(buffer, value.adManagerAdViewOptions);
     } else {
       super.writeValue(buffer, value);
     }
@@ -1337,6 +1344,15 @@ class AdMessageCodec extends StandardMessageCodec {
           buffer.getUint8(),
           buffer,
         )];
+      case _valueAdManagerAdViewOptions:
+        return AdManagerAdViewOptions(
+          manualImpressionsEnabled: readValueOfType(buffer.getUint8(), buffer),
+        );
+      case _valueBannerParameters:
+        return BannerParameters(
+          sizes: readValueOfType(buffer.getUint8(), buffer)?.cast<AdSize>(),
+          adManagerAdViewOptions: readValueOfType(buffer.getUint8(), buffer),
+        );
       default:
         return super.readValueOfType(type, buffer);
     }

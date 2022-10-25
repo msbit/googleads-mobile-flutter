@@ -43,6 +43,7 @@
 		9E61AA6229BBE8FD00801A83 /* FLTNativeTemplateColorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E61AA5D29BBE8FD00801A83 /* FLTNativeTemplateColorTest.m */; };
 		EBE2BC5BBFE6DB1E33F703F6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE39CA478AEB75A8616A301A /* Pods_Runner.framework */; };
 		E276E99229DFB5870052484E /* FLTAdLoaderAdTest.m in Sources */ = {isa = PBXBuildFile; fileRef = E276E99129DFB5870052484E /* FLTAdLoaderAdTest.m */; };
+		E2D4625F29DFC2560010C4D0 /* FLTAdManagerAdViewOptionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = E2D4625E29DFC2560010C4D0 /* FLTAdManagerAdViewOptionsTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +120,7 @@
 		A380EE5B67A6B0F501F9FBF1 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		FE39CA478AEB75A8616A301A /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E276E99129DFB5870052484E /* FLTAdLoaderAdTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLTAdLoaderAdTest.m; sourceTree = "<group>"; };
+		E2D4625E29DFC2560010C4D0 /* FLTAdManagerAdViewOptionsTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLTAdManagerAdViewOptionsTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -232,6 +234,7 @@
 				9E61AA5829BBE8DA00801A83 /* NativeTemplates */,
 				9E61AA5529BBE8AF00801A83 /* UserMessagingPlatform */,
 				E276E99129DFB5870052484E /* FLTAdLoaderAdTest.m */,
+				E2D4625E29DFC2560010C4D0 /* FLTAdManagerAdViewOptionsTest.m */,
 				9E61AA2729BBE66900801A83 /* FLTAdUtilTest.m */,
 				9E61AA2429BBE66900801A83 /* FLTAppOpenAdTest.m */,
 				9E61AA2229BBE66900801A83 /* FLTBannerAdTest.m */,
@@ -499,6 +502,7 @@
 				E276E99229DFB5870052484E /* FLTAdLoaderAdTest.m in Sources */,
 				9E61AA5329BBE88000801A83 /* FLTUserMessagingPlatformReaderWriterTest.m in Sources */,
 				9E61AA3229BBE66900801A83 /* FLTAppOpenAdTest.m in Sources */,
+				E2D4625F29DFC2560010C4D0 /* FLTAdManagerAdViewOptionsTest.m in Sources */,
 				9E61AA5F29BBE8FD00801A83 /* FLTNativeTemplateTypeTest.m in Sources */,
 				9E61AA3429BBE66900801A83 /* FLTGamInterstitialAdTest.m in Sources */,
 				9E61AA6029BBE8FD00801A83 /* FLTNativeTemplateStyleTest.m in Sources */,
