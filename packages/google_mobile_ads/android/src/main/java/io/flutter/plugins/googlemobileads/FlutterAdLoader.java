@@ -147,7 +147,8 @@ public class FlutterAdLoader {
       @NonNull AdListener adListener,
       @NonNull AdRequest request,
       @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters,
-      @Nullable FlutterAdLoaderAd.CustomParameters customParameters) {
+      @Nullable FlutterAdLoaderAd.CustomParameters customParameters,
+      @Nullable FlutterAdLoaderAd.NativeParameters nativeParameters) {
     AdLoader.Builder builder = new AdLoader.Builder(context, adUnitId);
     if (bannerParameters != null) {
       builder = builder.forAdManagerAdView(bannerParameters.listener, bannerParameters.adSizes);
@@ -158,6 +159,12 @@ public class FlutterAdLoader {
     if (customParameters != null) {
       for (String formatId : customParameters.factories.keySet()) {
         builder = builder.forCustomFormatAd(formatId, customParameters.listener, null);
+      }
+    }
+    if (nativeParameters != null) {
+      builder = builder.forNativeAd(nativeParameters.listener);
+      if (nativeParameters.nativeAdOptions != null) {
+        builder = builder.withNativeAdOptions(nativeParameters.nativeAdOptions);
       }
     }
     builder.withAdListener(adListener).build().loadAd(request);
@@ -169,7 +176,8 @@ public class FlutterAdLoader {
       @NonNull AdListener adListener,
       @NonNull AdManagerAdRequest adManagerAdRequest,
       @Nullable FlutterAdLoaderAd.BannerParameters bannerParameters,
-      @Nullable FlutterAdLoaderAd.CustomParameters customParameters) {
+      @Nullable FlutterAdLoaderAd.CustomParameters customParameters,
+      @Nullable FlutterAdLoaderAd.NativeParameters nativeParameters) {
     AdLoader.Builder builder = new AdLoader.Builder(context, adUnitId);
     if (bannerParameters != null) {
       builder = builder.forAdManagerAdView(bannerParameters.listener, bannerParameters.adSizes);
@@ -180,6 +188,12 @@ public class FlutterAdLoader {
     if (customParameters != null) {
       for (String formatId : customParameters.factories.keySet()) {
         builder = builder.forCustomFormatAd(formatId, customParameters.listener, null);
+      }
+    }
+    if (nativeParameters != null) {
+      builder = builder.forNativeAd(nativeParameters.listener);
+      if (nativeParameters.nativeAdOptions != null) {
+        builder = builder.withNativeAdOptions(nativeParameters.nativeAdOptions);
       }
     }
     builder.withAdListener(adListener).build().loadAd(adManagerAdRequest);

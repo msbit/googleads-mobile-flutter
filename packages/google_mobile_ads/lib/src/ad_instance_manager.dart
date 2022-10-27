@@ -470,6 +470,8 @@ class AdInstanceManager {
           return AdLoaderAdType.banner;
         case 2:
           return AdLoaderAdType.custom;
+        case 3:
+          return AdLoaderAdType.native;
         default:
           debugPrint('Error: unknown AdLoaderAdType value: $adLoaderAdType');
           return AdLoaderAdType.unknown;
@@ -482,6 +484,8 @@ class AdInstanceManager {
           return AdLoaderAdType.banner;
         case 2:
           return AdLoaderAdType.custom;
+        case 3:
+          return AdLoaderAdType.native;
         default:
           debugPrint('Error: unknown AdLoaderAdType value: $adLoaderAdType');
           return AdLoaderAdType.unknown;
@@ -588,6 +592,7 @@ class AdInstanceManager {
         'adManagerRequest': ad.adManagerRequest,
         'banner': ad.banner,
         'custom': ad.custom,
+        'native': ad.native,
       },
     );
   }
@@ -903,6 +908,7 @@ class AdMessageCodec extends StandardMessageCodec {
   static const int _valueAdManagerAdViewOptions = 154;
   static const int _valueBannerParameters = 155;
   static const int _valueCustomParameters = 156;
+  static const int _valueNativeParameters = 157;
 
   @override
   void writeValue(WriteBuffer buffer, dynamic value) {
@@ -1039,6 +1045,11 @@ class AdMessageCodec extends StandardMessageCodec {
     } else if (value is CustomParameters) {
       buffer.putUint8(_valueCustomParameters);
       writeValue(buffer, value.formatIds);
+      writeValue(buffer, value.viewOptions);
+    } else if (value is NativeParameters) {
+      buffer.putUint8(_valueNativeParameters);
+      writeValue(buffer, value.factoryId);
+      writeValue(buffer, value.nativeAdOptions);
       writeValue(buffer, value.viewOptions);
     } else {
       super.writeValue(buffer, value);
@@ -1271,6 +1282,13 @@ class AdMessageCodec extends StandardMessageCodec {
       case _valueCustomParameters:
         return CustomParameters(
           formatIds: readValueOfType(buffer.getUint8(), buffer).cast<String>(),
+          viewOptions: readValueOfType(buffer.getUint8(), buffer)
+              ?.cast<String, Object>(),
+        );
+      case _valueNativeParameters:
+        return NativeParameters(
+          factoryId: readValueOfType(buffer.getUint8(), buffer),
+          nativeAdOptions: readValueOfType(buffer.getUint8(), buffer),
           viewOptions: readValueOfType(buffer.getUint8(), buffer)
               ?.cast<String, Object>(),
         );
