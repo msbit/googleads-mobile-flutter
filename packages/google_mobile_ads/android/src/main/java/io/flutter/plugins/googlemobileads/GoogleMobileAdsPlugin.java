@@ -44,6 +44,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Flutter plugin accessing Google Mobile Ads API.
@@ -70,6 +71,7 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
   private final Map<String, NativeAdFactory> nativeAdFactories = new HashMap<>();
   @Nullable private MediationNetworkExtrasProvider mediationNetworkExtrasProvider;
   private final FlutterMobileAdsWrapper flutterMobileAds;
+  @Nullable private Supplier<FlutterAdLoader> adLoaderSupplier;
   /**
    * Public constructor for the plugin. Dependency initialization is handled in lifecycle methods
    * below.
@@ -93,6 +95,17 @@ public class GoogleMobileAdsPlugin implements FlutterPlugin, ActivityAware, Meth
   protected GoogleMobileAdsPlugin(@NonNull AppStateNotifier appStateNotifier) {
     this.appStateNotifier = appStateNotifier;
     this.flutterMobileAds = new FlutterMobileAdsWrapper();
+  }
+
+  @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+  protected GoogleMobileAdsPlugin(
+      @Nullable FlutterPluginBinding pluginBinding,
+      @Nullable AdInstanceManager instanceManager,
+      @NonNull FlutterMobileAdsWrapper flutterMobileAds,
+      @NonNull Supplier<FlutterAdLoader> adLoaderSupplier) {
+    this(pluginBinding, instanceManager, flutterMobileAds);
+
+    this.adLoaderSupplier = adLoaderSupplier;
   }
 
   /**
