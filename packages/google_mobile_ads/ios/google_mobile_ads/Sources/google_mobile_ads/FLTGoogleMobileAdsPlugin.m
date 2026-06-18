@@ -25,6 +25,8 @@
 @property NSObject<FlutterPluginRegistrar> *registrar;
 @property NSMutableDictionary<NSString *, id<FLTNativeAdFactory>>
     *nativeAdFactories;
+@property NSMutableDictionary<NSString *, id<FLTCustomAdFactory>>
+    *customAdFactories;
 @end
 
 /// Initialization handler for GMASDK. Invokes result at most once.
@@ -67,6 +69,7 @@
 
 @implementation FLTGoogleMobileAdsPlugin {
   NSMutableDictionary<NSString *, id<FLTNativeAdFactory>> *_nativeAdFactories;
+  NSMutableDictionary<NSString *, id<FLTCustomAdFactory>> *_customAdFactories;
   FLTAdInstanceManager *_manager;
   id<FLTMediationNetworkExtrasProvider> _mediationNetworkExtrasProvider;
   FLTGoogleMobileAdsReaderWriter *_readerWriter;
@@ -119,6 +122,7 @@
   if (self) {
       _registrar = registrar;
     _nativeAdFactories = [NSMutableDictionary dictionary];
+    _customAdFactories = [NSMutableDictionary dictionary];
     _manager =
         [[FLTAdInstanceManager alloc] initWithBinaryMessenger:binaryMessenger];
     _appStateNotifier =
@@ -200,6 +204,33 @@
   return YES;
 }
 
++ (BOOL)registerCustomAdFactory:(id<FlutterPluginRegistry>)registry
+                       formatId:(NSString *)formatId
+                customAdFactory:(id<FLTCustomAdFactory>)customAdFactory {
+  NSString *pluginClassName =
+      NSStringFromClass([FLTGoogleMobileAdsPlugin class]);
+  FLTGoogleMobileAdsPlugin *adMobPlugin = (FLTGoogleMobileAdsPlugin *)[registry
+      valuePublishedByPlugin:pluginClassName];
+  if (!adMobPlugin) {
+    NSString *reason =
+        [NSString stringWithFormat:@"Could not find a %@ instance. The plugin "
+                                   @"may have not been registered.",
+                                   pluginClassName];
+    @throw [NSException exceptionWithName:NSInvalidArgumentException
+                                   reason:reason
+                                 userInfo:nil];
+  }
+
+  if (adMobPlugin.customAdFactories[formatId]) {
+    NSLog(@"A CustomAdFactory with the following formatId already exists: %@",
+          formatId);
+    return NO;
+  }
+
+  [adMobPlugin.customAdFactories setValue:customAdFactory forKey:formatId];
+  return YES;
+}
+
 + (id<FLTNativeAdFactory>)unregisterNativeAdFactory:
                               (id<FlutterPluginRegistry>)registry
                                           factoryId:(NSString *)factoryId {
@@ -210,6 +241,19 @@
   id<FLTNativeAdFactory> factory = adMobPlugin.nativeAdFactories[factoryId];
   if (factory)
     [adMobPlugin.nativeAdFactories removeObjectForKey:factoryId];
+  return factory;
+}
+
++ (id<FLTCustomAdFactory>)unregisterCustomAdFactory:
+                              (id<FlutterPluginRegistry>)registry
+                                           formatId:(NSString *)formatId {
+  FLTGoogleMobileAdsPlugin *adMobPlugin = (FLTGoogleMobileAdsPlugin *)[registry
+      valuePublishedByPlugin:NSStringFromClass(
+                                 [FLTGoogleMobileAdsPlugin class])];
+
+  id<FLTCustomAdFactory> factory = adMobPlugin.customAdFactories[formatId];
+  if (factory)
+    [adMobPlugin.customAdFactories removeObjectForKey:formatId];
   return factory;
 }
 
@@ -441,6 +485,58 @@
         nativeTemplateStyle:call.arguments[@"nativeTemplateStyle"]];
     [_manager loadAd:ad];
     result(nil);
+  } else if ([call.method isEqualToString:@"loadAdLoaderAd"]) {
+    FLTCustomParameters *custom = call.arguments[@"custom"];
+    if ([FLTAdUtil isNotNull:custom]) {
+      for (NSString *formatId in custom.formatIds) {
+        id<FLTCustomAdFactory> factory = _customAdFactories[formatId];
+        if (!factory) {
+          NSString *message = [NSString
+              stringWithFormat:@"Can't find CustomAdFactory with id: %@",
+                               formatId];
+          result([FlutterError errorWithCode:@"AdLoaderAdError"
+                                     message:message
+                                     details:nil]);
+          return;
+        }
+
+        [custom.factories setValue:factory forKey:formatId];
+      }
+    }
+
+    FLTNativeParameters *native = call.arguments[@"native"];
+    if ([FLTAdUtil isNotNull:native]) {
+      id<FLTNativeAdFactory> factory = _nativeAdFactories[native.factoryId];
+      if (!factory) {
+        NSString *message = [NSString
+            stringWithFormat:@"Can't find NativeAdFactory with id: %@",
+                             native.factoryId];
+        result([FlutterError errorWithCode:@"AdLoaderAdError"
+                                   message:message
+                                   details:nil]);
+        return;
+      }
+
+      native.factory = factory;
+    }
+
+    FLTAdRequest *request;
+    if ([FLTAdUtil isNotNull:call.arguments[@"request"]]) {
+      request = call.arguments[@"request"];
+    } else if ([FLTAdUtil isNotNull:call.arguments[@"adManagerRequest"]]) {
+      request = call.arguments[@"adManagerRequest"];
+    }
+
+    FLTAdLoaderAd *ad =
+        [[FLTAdLoaderAd alloc] initWithAdUnitId:call.arguments[@"adUnitId"]
+                                        request:request
+                             rootViewController:rootController
+                                           adId:call.arguments[@"adId"]
+                                         banner:call.arguments[@"banner"]
+                                         custom:custom
+                                         native:native];
+    [_manager loadAd:ad];
+    result(nil);
   } else if ([call.method isEqualToString:@"loadInterstitialAd"]) {
     FLTInterstitialAd *ad =
         [[FLTInterstitialAd alloc] initWithAdUnitId:call.arguments[@"adUnitId"]
@@ -543,6 +639,31 @@
     } else {
       result(nil);
     }
+  } else if ([call.method isEqualToString:@"getAdLoaderAdType"]) {
+    id<FLTAd> ad = [_manager adFor:call.arguments[@"adId"]];
+    if ([FLTAdUtil isNull:ad]) {
+      // Called on an ad that hasn't been loaded yet.
+      result(nil);
+    }
+    if ([ad isKindOfClass:[FLTAdLoaderAd class]]) {
+      FLTAdLoaderAd *adLoaderAd = (FLTAdLoaderAd *)ad;
+      FLTAdLoaderAdType adLoaderType = [adLoaderAd adLoaderAdType];
+      result([[NSNumber alloc] initWithInteger:adLoaderType]);
+    } else {
+      result(FlutterMethodNotImplemented);
+    }
+  } else if ([call.method isEqualToString:@"getFormatId"]) {
+    id<FLTAd> ad = [_manager adFor:call.arguments[@"adId"]];
+    if ([FLTAdUtil isNull:ad]) {
+      // Called on an ad that hasn't been loaded yet.
+      result(nil);
+    }
+    if ([ad isKindOfClass:[FLTAdLoaderAd class]]) {
+      FLTAdLoaderAd *adLoaderAd = (FLTAdLoaderAd *)ad;
+      result([adLoaderAd formatId]);
+    } else {
+      result(FlutterMethodNotImplemented);
+    }
   } else if ([call.method isEqualToString:@"getAdSize"]) {
     id<FLTAd> ad = [_manager adFor:call.arguments[@"adId"]];
     if ([FLTAdUtil isNull:ad]) {
@@ -552,6 +673,9 @@
     if ([ad isKindOfClass:[FLTBannerAd class]]) {
       FLTBannerAd *bannerAd = (FLTBannerAd *)ad;
       result([bannerAd getAdSize]);
+    } else if ([ad isKindOfClass:[FLTAdLoaderAd class]]) {
+      FLTAdLoaderAd *adLoaderAd = (FLTAdLoaderAd *)ad;
+      result([adLoaderAd adSize]);
     } else {
       result(FlutterMethodNotImplemented);
     }
