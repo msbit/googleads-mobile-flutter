@@ -1,5 +1,6 @@
 package io.flutter.plugins.googlemobileads;
 
+import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 import androidx.annotation.NonNull;
@@ -271,8 +272,13 @@ class FlutterAdLoaderAd extends FlutterAd implements FlutterAdLoadedListener, Na
 
   @Override
   public void onBannerAdLoaded(@NonNull BannerAd bannerAd) {
-    AdView adView = new AdView(manager.getActivity());
-    adView.registerBannerAd(bannerAd, manager.getActivity());
+    Activity activity = manager.getActivity();
+    if (activity == null) {
+      Log.e(TAG, "Tried to load banner ad before plugin is attached to an activity.");
+      return;
+    }
+    AdView adView = new AdView(activity);
+    adView.registerBannerAd(bannerAd, activity);
 
     view = adView;
     type = AdLoaderAdType.BANNER;
